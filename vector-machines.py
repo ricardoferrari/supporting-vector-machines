@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report, ConfusionMatrixDisplay
+from sklearn.metrics import accuracy_score, classification_report, ConfusionMatrixDisplay, recall_score
 from sklearn import svm
 
 import seaborn as sns
@@ -22,7 +22,7 @@ x, y = datasets.load_digits(return_X_y=True)
 
 
 original_x_train, original_x_test, original_y_train, original_y_test = train_test_split(x, y,
-                                                    test_size=.1,
+                                                    test_size=.5,
                                                     random_state=183212)
 
 print('amostras em treino: %i' % original_x_train.shape[0],
@@ -75,7 +75,7 @@ sns.barplot(x=labels, y=counts);
 
 # %%
 from itertools import product
-def train_test_plot_rbf(data, penalty_array=[1e-3, 1e-2, 1e-1, 1.0, 10.0], gamma_array= [1e-4, 1e-3, 1e-2, 1e-1], kernel='rbf', num_test=5):
+def train_test_plot_rbf(data, penalty_array=[1e-3, 1e-2, 1e-1, 1.0, 10.0], gamma_array= [1e-4, 1e-3, 1e-2, 1e-1], kernel='rbf'):
     x_train, x_test, y_train, y_test = data
     plt.figure(figsize=(24, 18))
     
@@ -120,6 +120,9 @@ def calc_model_metrics(model, y_test, predicted):
         f"Classification report for classifier {model}:\n"
         f"{classification_report(y_test, predicted)}\n"
     )
+    print('Classificações corretas =', accuracy_score(original_y_test, best_prediction, normalize=False))
+    print('Acurácia =', accuracy_score(original_y_test, best_prediction))
+    print('Acurácia normalizada =', recall_score(original_y_test, best_prediction, average='macro'))
 
 def plot_confusion_matrix(y_test, predicted):
     disp = ConfusionMatrixDisplay.from_predictions(y_test, predicted)
@@ -133,7 +136,7 @@ def plot_confusion_matrix(y_test, predicted):
 trainTestData = []
 trainTestData.append((original_x_train, original_x_test, original_y_train, original_y_test))
 
-train_test_plot_rbf(trainTestData[0],num_test = 10)
+train_test_plot_rbf(trainTestData[0])
 
 best_model, best_prediction = get_model_and_prediction(trainTestData[0], penalty=1.0, gamma=0.001)
 
@@ -141,7 +144,44 @@ best_model, best_prediction = get_model_and_prediction(trainTestData[0], penalty
 # %%
 show_predict_digits(best_prediction, num_test=5)
 calc_model_metrics(best_model, original_y_test, best_prediction)
+
 plot_confusion_matrix(original_y_test, best_prediction)
 
+
+# %%
+# Teste com as Random Forest
+from sklearn.ensemble import RandomForestClassifier
+
+rfModel = RandomForestClassifier(n_estimators=10)
+rfModel.fit(original_x_train, original_y_train)
+
+#Predizer os dados de teste
+random_forest_prediction = rfModel.predict(original_x_test)
+
+calc_model_metrics(rfModel, original_y_test, random_forest_prediction)
+
+plot_confusion_matrix(original_y_test, random_forest_prediction)
+
+
+# %%
+import warnings
+from sklearn.linear_model import LogisticRegression
+from sklearn.exceptions import ConvergenceWarning
+
+lr = LogisticRegression(
+            solver="saga",
+            multi_class="ovr",
+            penalty="l1",
+            max_iter=3,
+            random_state=42,
+        )
+
+warnings.filterwarnings("ignore", category=ConvergenceWarning, module="sklearn")
+lr.fit(original_x_train, original_y_train)
+lr_prediction = lr.predict(original_x_test)
+
+calc_model_metrics(lr, original_y_test, lr_prediction)
+
+plot_confusion_matrix(original_y_test, lr_prediction)
 
 # %%
