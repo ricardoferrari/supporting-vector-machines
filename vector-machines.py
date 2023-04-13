@@ -75,7 +75,7 @@ sns.barplot(x=labels, y=counts);
 
 # %%
 from itertools import product
-def train_test_plot_rbf(data, penalty_array=[1e-3, 1e-2, 1e-1, 1.0, 10.0], gamma_array= [1e-4, 1e-3, 1e-2, 1e-1], kernel='rbf'):
+def train_test_plot_svm(data, penalty_array=[1e-3, 1e-2, 1e-1, 1.0, 10.0], gamma_array= [1e-4, 1e-3, 1e-2, 1e-1], kernel='rbf'):
     x_train, x_test, y_train, y_test = data
     plt.figure(figsize=(24, 18))
     
@@ -91,7 +91,7 @@ def train_test_plot_rbf(data, penalty_array=[1e-3, 1e-2, 1e-1, 1.0, 10.0], gamma
         train_acc = accuracy_score(y_train, predicted_train)
         test_acc = accuracy_score(y_test, predicted_test)
         
-        print("Acurácia treino: ", train_acc, " - acurácia teste: ", test_acc, " - gamma: ", gamma, " - pennalty: ", penalty)
+        print("Acurácia treino (", kernel,"): ", train_acc, " - acurácia teste: ", test_acc, " - gamma: ", gamma, " - pennalty: ", penalty)
         
 
 
@@ -136,7 +136,8 @@ def plot_confusion_matrix(y_test, predicted):
 trainTestData = []
 trainTestData.append((original_x_train, original_x_test, original_y_train, original_y_test))
 
-train_test_plot_rbf(trainTestData[0])
+train_test_plot_svm(trainTestData[0])
+train_test_plot_svm(trainTestData[0], kernel='linear')
 
 best_model, best_prediction = get_model_and_prediction(trainTestData[0], penalty=1.0, gamma=0.001)
 
